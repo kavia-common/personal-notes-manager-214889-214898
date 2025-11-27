@@ -1,0 +1,24 @@
+plugins {
+    // No plugins required at root; modules will apply their own
+}
+
+tasks.register("lint") {
+    group = "verification"
+    description = "Runs Android Lint for all modules"
+    dependsOn(
+        gradle.includedBuilds.collect {  }, // noop for simplicity
+        ":app:lint",
+        ":utilities:lint",
+        ":list:lint"
+    )
+}
+
+tasks.register("check") {
+    group = "verification"
+    description = "Runs all verification tasks."
+    dependsOn(
+        ":app:check",
+        ":utilities:check",
+        ":list:check"
+    )
+}

@@ -1,0 +1,22 @@
+pluginManagement {
+    repositories {
+        google()
+        gradlePluginPortal()
+        mavenCentral()
+    }
+}
+
+// Keep dependency repositories here for Gradle to resolve plugins and dependencies
+dependencyResolutionManagement {
+    repositoriesMode.set(RepositoriesMode.PREFER_SETTINGS)
+    repositories {
+        google()
+        mavenCentral()
+    }
+}
+
+// The declarative Gradle build config is located in settings.gradle.dcl.
+// We keep the canonical name and root project name consistent.
+rootProject.name = "example-android-app"
+
+// The declarative ecosystem plugin reads settings.gradle.dcl; ensure file is present.
