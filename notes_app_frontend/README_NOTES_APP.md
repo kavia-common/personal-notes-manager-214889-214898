@@ -6,7 +6,7 @@ Features:
 - Notes List with FAB
 - Create/Edit screen (title required)
 - View Note with Edit/Delete
-- Ocean Professional theme colors
+- Monochrome black-and-white theme
 - Empty state and loading indicator
 
 Build:

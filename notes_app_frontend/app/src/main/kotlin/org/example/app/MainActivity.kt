@@ -84,37 +84,36 @@ class MainActivity : ComponentActivity() {
     }
 }
 
-private val OceanColorScheme = lightColorScheme(
-    primary = Color(0xFF2563EB),
-    secondary = Color(0xFFF59E0B),
-    error = Color(0xFFEF4444),
-    background = Color(0xFFF9FAFB),
-    surface = Color(0xFFFFFFFF),
-    onPrimary = Color.White,
-    onSecondary = Color(0xFF111827),
-    onBackground = Color(0xFF111827),
-    onSurface = Color(0xFF111827),
+private val MonoColorScheme = lightColorScheme(
+    // Core grayscale palette (accessible contrast)
+    primary = Color(0xFF111111),        // used for key accents (FAB, primary buttons)
+    secondary = Color(0xFF2B2B2B),      // secondary accents if needed
+    error = Color(0xFF222222),          // keep grayscale; dialogs text uses red tint removed
+    background = Color(0xFF0A0A0A),     // app background (near black)
+    surface = Color(0xFF1F1F1F),        // cards and surfaces
+    onPrimary = Color(0xFFFFFFFF),      // text on primary
+    onSecondary = Color(0xFFE5E5E5),    // text/icons on secondary surfaces
+    onBackground = Color(0xFFE5E5E5),   // primary text on background
+    onSurface = Color(0xFFE5E5E5),      // text on surfaces
 )
 
 @Composable
-private fun OceanProfessionalTheme(content: @Composable () -> Unit) {
+private fun MonoTheme(content: @Composable () -> Unit) {
     MaterialTheme(
-        colorScheme = OceanColorScheme,
-        typography = MaterialTheme.typography,
-        content = {
-            Surface(
-                color = MaterialTheme.colorScheme.background
-            ) {
-                content()
-            }
+        colorScheme = MonoColorScheme,
+        typography = MaterialTheme.typography
+    ) {
+        // Root surface to ensure background fills the window
+        Surface(color = MaterialTheme.colorScheme.background) {
+            content()
         }
-    )
+    }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun OceanProfessionalNotesApp() {
-    OceanProfessionalTheme {
+    MonoTheme {
         val repo = remember { InMemoryNotesRepository(seed = true) }
         val screenState = remember { mutableStateOf<Screen>(Screen.List) }
         val selectedNote = remember { mutableStateOf<Note?>(null) }
@@ -136,12 +135,13 @@ private fun OceanProfessionalNotesApp() {
                 AnimatedVisibility(visible = screenState.value == Screen.List) {
                     FloatingActionButton(
                         containerColor = MaterialTheme.colorScheme.primary,
+                        contentColor = MaterialTheme.colorScheme.onPrimary,
                         onClick = { screenState.value = Screen.CreateEdit(null) }
                     ) {
                         Icon(
                             imageVector = Add,
                             contentDescription = "Add note",
-                            tint = Color.White
+                            tint = MaterialTheme.colorScheme.onPrimary
                         )
                     }
                 }
@@ -211,11 +211,15 @@ private fun TopBar(screen: Screen, onBack: () -> Unit) {
         is Screen.CreateEdit -> if (screen.note == null) "New Note" else "Edit Note"
     }
     TopAppBar(
-        title = { Text(title) },
+        title = { Text(title, color = MaterialTheme.colorScheme.onSurface) },
         navigationIcon = {
             if (screen != Screen.List) {
                 IconButton(onClick = onBack) {
-                    Icon(ArrowBack, contentDescription = "Back")
+                    Icon(
+                        ArrowBack,
+                        contentDescription = "Back",
+                        tint = MaterialTheme.colorScheme.onSurface
+                    )
                 }
             }
         }
@@ -275,15 +279,18 @@ private fun NoteCard(note: Note, onClick: () -> Unit) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .shadow(2.dp, ambientColor = Color.Black.copy(alpha = 0.05f))
+            .shadow(2.dp, ambientColor = Color.Black.copy(alpha = 0.2f))
             .clickable(onClick = onClick),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surface
+        ),
         shape = MaterialTheme.shapes.medium,
-        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
         Column(Modifier.padding(16.dp)) {
             Text(
                 text = note.title,
+                color = MaterialTheme.colorScheme.onSurface,
                 style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold),
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis
@@ -291,7 +298,8 @@ private fun NoteCard(note: Note, onClick: () -> Unit) {
             Spacer(Modifier.height(6.dp))
             Text(
                 text = note.body,
-                style = MaterialTheme.typography.bodyMedium.copy(color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f)),
+                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.80f),
+                style = MaterialTheme.typography.bodyMedium,
                 maxLines = 3,
                 overflow = TextOverflow.Ellipsis
             )
@@ -322,16 +330,16 @@ private fun CreateEditScreen(
                 title = it
                 if (error != null) error = null
             },
-            label = { Text("Title") },
+            label = { Text("Title", color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.85f)) },
             isError = error != null,
-            supportingText = { if (error != null) Text(error!!) },
+            supportingText = { if (error != null) Text(error!!, color = MaterialTheme.colorScheme.onSurface) },
             modifier = Modifier.fillMaxWidth()
         )
         Spacer(Modifier.height(12.dp))
         OutlinedTextField(
             value = body,
             onValueChange = { body = it },
-            label = { Text("Body") },
+            label = { Text("Body", color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.85f)) },
             modifier = Modifier
                 .fillMaxWidth()
                 .fillMaxHeight(0.7f),
@@ -343,7 +351,7 @@ private fun CreateEditScreen(
             modifier = Modifier.fillMaxWidth()
         ) {
             TextButton(onClick = onCancel) {
-                Text("Cancel")
+                Text("Cancel", color = MaterialTheme.colorScheme.onSurface)
             }
             Spacer(modifier = Modifier.weight(1f))
             TextButton(
@@ -356,7 +364,7 @@ private fun CreateEditScreen(
                     onSave(toSave)
                 }
             ) {
-                Text("Save", color = MaterialTheme.colorScheme.primary)
+                Text("Save", color = MaterialTheme.colorScheme.onSurface)
             }
         }
     }
@@ -389,15 +397,19 @@ private fun ViewNoteScreen(
                 modifier = Modifier.weight(1f)
             )
             IconButton(onClick = onEdit) {
-                Icon(Edit, contentDescription = "Edit")
+                Icon(Edit, contentDescription = "Edit", tint = MaterialTheme.colorScheme.onSurface)
             }
             IconButton(onClick = { showConfirm = true }) {
-                Icon(Delete, contentDescription = "Delete", tint = MaterialTheme.colorScheme.error)
+                Icon(Delete, contentDescription = "Delete", tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.85f))
             }
         }
-        Divider(Modifier.padding(vertical = 8.dp))
+        Divider(
+            Modifier.padding(vertical = 8.dp),
+            color = Color(0xFF2B2B2B)
+        )
         Text(
             text = note.body.ifBlank { "No content" },
+            color = MaterialTheme.colorScheme.onSurface,
             style = MaterialTheme.typography.bodyLarge
         )
     }
@@ -405,16 +417,16 @@ private fun ViewNoteScreen(
     if (showConfirm) {
         AlertDialog(
             onDismissRequest = { showConfirm = false },
-            title = { Text("Delete note?") },
-            text = { Text("This action cannot be undone.") },
+            title = { Text("Delete note?", color = MaterialTheme.colorScheme.onSurface) },
+            text = { Text("This action cannot be undone.", color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.85f)) },
             confirmButton = {
                 TextButton(onClick = {
                     showConfirm = false
                     onDelete()
-                }) { Text("Delete", color = MaterialTheme.colorScheme.error) }
+                }) { Text("Delete", color = MaterialTheme.colorScheme.onSurface) }
             },
             dismissButton = {
-                TextButton(onClick = { showConfirm = false }) { Text("Cancel") }
+                TextButton(onClick = { showConfirm = false }) { Text("Cancel", color = MaterialTheme.colorScheme.onSurface) }
             }
         )
     }
@@ -429,7 +441,7 @@ private fun LoadingState(height: Dp = 160.dp) {
             .padding(16.dp),
         contentAlignment = Alignment.Center
     ) {
-        Text("Loading...", color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f))
+        Text("Loading...", color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.7f))
     }
 }
 
@@ -442,7 +454,7 @@ private fun EmptyState(title: String, subtitle: String) {
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Text(title, style = MaterialTheme.typography.titleMedium)
+        Text(title, style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.onBackground)
         Spacer(Modifier.height(8.dp))
         Text(subtitle, color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.7f))
     }

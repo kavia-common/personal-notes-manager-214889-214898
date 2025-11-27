@@ -17,7 +17,7 @@ class InMemoryNotesRepository(seed: Boolean = false) {
             val samples = listOf(
                 Note.new().copy(title = "Welcome", body = "This is your notes app. Tap + to create a note."),
                 Note.new().copy(title = "Ideas", body = "• Grocery list\n• Project thoughts\n• Books to read"),
-                Note.new().copy(title = "Ocean Theme", body = "Primary: #2563EB\nAccent: #F59E0B\nBackground: #F9FAFB")
+                Note.new().copy(title = "Tips", body = "Use the + button to create a note.\nLong notes are collapsed in the list.")
             )
             samples.forEach { map[it.id] = it }
         }
