@@ -1,22 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <!-- PUBLIC_INTERFACE -->
-    <!-- AppTheme inherits from AppCompat to guarantee presence across setups; Compose Material3 provides in-app theming. -->
-    <style name="AppTheme" parent="Theme.AppCompat.Light.NoActionBar">
+    <!-- AppTheme inherits from AppCompat DayNight NoActionBar which is guaranteed with androidx.appcompat dependency. -->
+    <style name="AppTheme" parent="Theme.AppCompat.DayNight.NoActionBar">
         <!-- Remove the action bar/title -->
         <item name="windowActionBar">false</item>
         <item name="windowNoTitle">true</item>
 
-        <!-- Opt into MaterialComponents bridge where applicable -->
-        <item name="materialThemeOverlay">@style/ThemeOverlay.Material3</item>
-
         <!-- System bar colors kept transparent for flat look. -->
         <item name="android:statusBarColor">@android:color/transparent</item>
         <item name="android:navigationBarColor">@android:color/transparent</item>
-    </style>
-
-    <!-- Material3 overlay for any Views if needed -->
-    <style name="ThemeOverlay.Material3" parent="ThemeOverlay.Material3">
-        <!-- No-op; placeholder to satisfy reference -->
     </style>
 </resources>
