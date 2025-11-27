@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- PUBLIC_INTERFACE -->
+    <!-- Base application theme mapping to Material3 DayNight with no action bar. -->
+    <style name="Theme.Material3.DayNight.NoActionBar" parent="Theme.Material3.DayNight.NoActionBar">
+        <!-- Customize colors to match Ocean Professional if needed (Compose handles most theming). -->
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:navigationBarColor">@android:color/transparent</item>
+    </style>
+</resources>
