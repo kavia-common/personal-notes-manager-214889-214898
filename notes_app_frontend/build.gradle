@@ -1,12 +1,18 @@
 plugins {
-    // No plugins required at root; modules will apply their own
+    // Keep root minimal; module builds apply their own plugins via settings pluginManagement versions
+}
+
+ext {
+    kotlinVersion = "1.9.24"
+    agpVersion = "8.5.2"
+    composeBom = "2024.10.01"
+    composeCompilerExtension = "1.5.15"
 }
 
 tasks.register("lint") {
     group = "verification"
     description = "Runs Android Lint for all modules"
     dependsOn(
-        gradle.includedBuilds.collect {  }, // noop for simplicity
         ":app:lint",
         ":utilities:lint",
         ":list:lint"

@@ -22,7 +22,10 @@ android {
     buildTypes {
         release {
             minifyEnabled false
-            proguardFiles getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro"
+            proguardFiles(
+                getDefaultProguardFile("proguard-android-optimize.txt"),
+                "proguard-rules.pro"
+            )
         }
         debug {
             // debug options can be added here
@@ -30,18 +33,21 @@ android {
     }
 
     buildFeatures {
-        compose true
+        compose = true
     }
 
     composeOptions {
-        kotlinCompilerExtensionVersion "1.5.15"
+        kotlinCompilerExtensionVersion = "1.5.15"
     }
 
     kotlinOptions {
         jvmTarget = "17"
+        freeCompilerArgs += [
+                "-Xjvm-default=all",
+        ]
     }
 
-    packagingOptions {
+    packaging {
         resources {
             excludes += ["/META-INF/{AL2.0,LGPL2.1}"]
         }

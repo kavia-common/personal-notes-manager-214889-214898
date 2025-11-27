@@ -1,3 +1,3 @@
-androidLibrary {
-    namespace = "org.gradle.experimental.android.list"
-}
+/*
+Declarative Gradle (.dcl) disabled; configuration is in conventional build.gradle.
+*/

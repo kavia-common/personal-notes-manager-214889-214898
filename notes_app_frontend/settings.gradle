@@ -4,9 +4,13 @@ pluginManagement {
         gradlePluginPortal()
         mavenCentral()
     }
+    plugins {
+        id("com.android.application") version "8.5.2"
+        id("com.android.library") version "8.5.2"
+        id("org.jetbrains.kotlin.android") version "1.9.24"
+    }
 }
 
-// Keep dependency repositories here for Gradle to resolve plugins and dependencies
 dependencyResolutionManagement {
     repositoriesMode.set(RepositoriesMode.PREFER_SETTINGS)
     repositories {
@@ -15,8 +19,8 @@ dependencyResolutionManagement {
     }
 }
 
-// The declarative Gradle build config is located in settings.gradle.dcl.
-// We keep the canonical name and root project name consistent.
 rootProject.name = "example-android-app"
 
-// The declarative ecosystem plugin reads settings.gradle.dcl; ensure file is present.
+include(":app")
+include(":list")
+include(":utilities")

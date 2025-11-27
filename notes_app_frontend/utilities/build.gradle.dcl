@@ -1,7 +1,3 @@
-androidLibrary {
-    namespace = "org.gradle.experimental.android.utilities"
-
-    dependencies {
-        api(project(":list"))
-    }
-}
+/*
+Declarative Gradle (.dcl) disabled; configuration is in conventional build.gradle.
+*/
