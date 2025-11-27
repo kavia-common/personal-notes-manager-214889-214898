@@ -4,8 +4,11 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.animation.AnimatedVisibility
+
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -27,6 +30,7 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Divider
 import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.FloatingActionButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -38,6 +42,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -50,8 +55,8 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -133,10 +138,17 @@ private fun OceanProfessionalNotesApp() {
             },
             floatingActionButton = {
                 AnimatedVisibility(visible = screenState.value == Screen.List) {
+                    // Flat FAB: remove elevation and shadow
                     FloatingActionButton(
                         containerColor = MaterialTheme.colorScheme.primary,
                         contentColor = MaterialTheme.colorScheme.onPrimary,
-                        onClick = { screenState.value = Screen.CreateEdit(null) }
+                        onClick = { screenState.value = Screen.CreateEdit(null) },
+                        elevation = FloatingActionButtonDefaults.elevation(
+                            defaultElevation = 0.dp,
+                            pressedElevation = 0.dp,
+                            focusedElevation = 0.dp,
+                            hoveredElevation = 0.dp
+                        )
                     ) {
                         Icon(
                             imageVector = Add,
@@ -210,6 +222,7 @@ private fun TopBar(screen: Screen, onBack: () -> Unit) {
         is Screen.View -> "View Note"
         is Screen.CreateEdit -> if (screen.note == null) "New Note" else "Edit Note"
     }
+    // Flat TopAppBar: zero tonal/elevation, keep contrast
     TopAppBar(
         title = { Text(title, color = MaterialTheme.colorScheme.onSurface) },
         navigationIcon = {
@@ -222,7 +235,15 @@ private fun TopBar(screen: Screen, onBack: () -> Unit) {
                     )
                 }
             }
-        }
+        },
+        colors = TopAppBarDefaults.topAppBarColors(
+            containerColor = MaterialTheme.colorScheme.surface,
+            scrolledContainerColor = MaterialTheme.colorScheme.surface,
+            navigationIconContentColor = MaterialTheme.colorScheme.onSurface,
+            titleContentColor = MaterialTheme.colorScheme.onSurface,
+            actionIconContentColor = MaterialTheme.colorScheme.onSurface
+        ),
+        scrollBehavior = null // avoids default tonal elevation on scroll
     )
 }
 
@@ -276,16 +297,18 @@ private fun NotesListScreen(
 
 @Composable
 private fun NoteCard(note: Note, onClick: () -> Unit) {
+    // Flat card: no shadow, no elevation, add subtle border for focus/pressed visibility
+    val borderColor = Color(0xFF2B2B2B)
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .shadow(2.dp, ambientColor = Color.Black.copy(alpha = 0.2f))
             .clickable(onClick = onClick),
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surface
         ),
         shape = MaterialTheme.shapes.medium,
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
+        border = androidx.compose.foundation.BorderStroke(1.dp, borderColor)
     ) {
         Column(Modifier.padding(16.dp)) {
             Text(
@@ -350,6 +373,7 @@ private fun CreateEditScreen(
             horizontalArrangement = Arrangement.spacedBy(8.dp),
             modifier = Modifier.fillMaxWidth()
         ) {
+            // Flat text buttons (TextButton already has no elevation). We ensure visibility by strong contrast.
             TextButton(onClick = onCancel) {
                 Text("Cancel", color = MaterialTheme.colorScheme.onSurface)
             }
@@ -415,6 +439,8 @@ private fun ViewNoteScreen(
     }
 
     if (showConfirm) {
+        // Flat dialog: M3 AlertDialog has no explicit elevation setter, but uses theme.
+        // We ensure flat appearance by avoiding tonal elevation via color choices.
         AlertDialog(
             onDismissRequest = { showConfirm = false },
             title = { Text("Delete note?", color = MaterialTheme.colorScheme.onSurface) },
@@ -427,7 +453,9 @@ private fun ViewNoteScreen(
             },
             dismissButton = {
                 TextButton(onClick = { showConfirm = false }) { Text("Cancel", color = MaterialTheme.colorScheme.onSurface) }
-            }
+            },
+            // Use container surface to avoid tonal elevation look
+            containerColor = MaterialTheme.colorScheme.surface
         )
     }
 }

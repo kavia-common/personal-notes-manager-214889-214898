@@ -1,9 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <!-- PUBLIC_INTERFACE -->
-    <!-- Base application theme mapping to Material3 with no action bar. -->
+    <!-- Define base DayNight Material3 theme using a valid parent to avoid cycles. -->
+    <style name="Theme.Material3.DayNight" parent="Theme.Material3.DynamicColors.DayNight">
+        <!-- Compose provides actual colors; keep system bars transparent for flat look. -->
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:navigationBarColor">@android:color/transparent</item>
+    </style>
+
+    <!-- PUBLIC_INTERFACE -->
+    <!-- NoActionBar variant used by the application. -->
     <style name="Theme.Material3.DayNight.NoActionBar" parent="Theme.Material3.DayNight">
-        <!-- Compose handles theming; app uses a custom monochrome palette in code. -->
         <item name="android:statusBarColor">@android:color/transparent</item>
         <item name="android:navigationBarColor">@android:color/transparent</item>
     </style>
