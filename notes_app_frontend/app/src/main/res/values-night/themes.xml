@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- Define base to ensure availability in night config as well without self-reference -->
-    <style name="Theme.Material3.DayNight" parent="Theme.Material3.DynamicColors.DayNight">
-        <item name="android:statusBarColor">@android:color/transparent</item>
-        <item name="android:navigationBarColor">@android:color/transparent</item>
-    </style>
+    <!-- PUBLIC_INTERFACE -->
+    <!-- Night variant inherits from AppCompat theme for parity; Compose handles night colors internally. -->
+    <style name="AppTheme" parent="Theme.AppCompat.Light.NoActionBar">
+        <item name="windowActionBar">false</item>
+        <item name="windowNoTitle">true</item>
 
-    <!-- Night-specific overrides; keep flat bars -->
-    <style name="Theme.Material3.DayNight.NoActionBar" parent="Theme.Material3.DayNight">
+        <item name="materialThemeOverlay">@style/ThemeOverlay.Material3</item>
+
         <item name="android:statusBarColor">@android:color/transparent</item>
         <item name="android:navigationBarColor">@android:color/transparent</item>
     </style>
