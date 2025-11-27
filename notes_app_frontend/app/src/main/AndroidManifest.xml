@@ -5,6 +5,8 @@
         android:label="@string/app_name"
         android:theme="@style/AppTheme"
         tools:targetApi="34">
+        <!-- AppTheme is defined in res/values/themes.xml and values-night/themes.xml.
+             It inherits from Theme.AppCompat.DayNight.NoActionBar and uses no Material overlays. -->
         <activity
             android:name="org.example.app.MainActivity"
             android:exported="true">

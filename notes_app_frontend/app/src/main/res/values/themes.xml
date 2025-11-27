@@ -1,13 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <!-- PUBLIC_INTERFACE -->
-    <!-- AppTheme inherits from AppCompat DayNight NoActionBar which is guaranteed with androidx.appcompat dependency. -->
+    <!--
+      AppTheme definition for the application.
+      - Inherits from Theme.AppCompat.DayNight.NoActionBar to avoid reliance on MaterialComponents/Material3 XML overlays.
+      - Do NOT reference materialThemeOverlay, ThemeOverlay.Material3, or DynamicColors here.
+      - Compose Material3 theming is applied in code (see MonoTheme in MainActivity).
+    -->
     <style name="AppTheme" parent="Theme.AppCompat.DayNight.NoActionBar">
         <!-- Remove the action bar/title -->
         <item name="windowActionBar">false</item>
         <item name="windowNoTitle">true</item>
 
-        <!-- System bar colors kept transparent for flat look. -->
+        <!-- Keep system bars transparent for a flat look -->
         <item name="android:statusBarColor">@android:color/transparent</item>
         <item name="android:navigationBarColor">@android:color/transparent</item>
     </style>

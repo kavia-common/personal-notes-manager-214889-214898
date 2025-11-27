@@ -1,7 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <!-- PUBLIC_INTERFACE -->
-    <!-- Night variant inherits from AppCompat DayNight to ensure availability. -->
+    <!--
+      Night variant of AppTheme.
+      - Inherits from Theme.AppCompat.DayNight.NoActionBar to ensure availability in all environments.
+      - No MaterialComponents/Material3 overlays or attrs are referenced (e.g., materialThemeOverlay, ThemeOverlay.Material3).
+      - Compose handles color theming at runtime.
+    -->
     <style name="AppTheme" parent="Theme.AppCompat.DayNight.NoActionBar">
         <item name="windowActionBar">false</item>
         <item name="windowNoTitle">true</item>
