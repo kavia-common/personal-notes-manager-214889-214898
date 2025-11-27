@@ -4,11 +4,8 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.animation.AnimatedVisibility
-
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -21,7 +18,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.AlertDialog
@@ -44,20 +40,20 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.lightColorScheme
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.Shape
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
@@ -65,6 +61,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.launch
 import org.example.app.data.InMemoryNotesRepository
+import org.example.app.data.SettingsRepository
 import org.example.app.model.Note
 import org.example.app.ui.Delete
 import org.example.app.ui.Edit
@@ -77,38 +74,53 @@ MainActivity is the app entry point. It sets up Compose, theme, and hosts the na
 - Notes List
 - Create/Edit Note
 - View Note
-It wires an in-memory repository for basic functionality.
+It wires an in-memory repository for basic functionality and persists accessibility preferences.
  */
 class MainActivity : ComponentActivity() {
 
+    private lateinit var settingsRepository: SettingsRepository
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        settingsRepository = SettingsRepository(applicationContext)
+
         setContent {
-            OceanProfessionalNotesApp()
+            OceanProfessionalNotesApp(settingsRepository)
         }
     }
 }
 
 private val MonoColorScheme = lightColorScheme(
-    // Core grayscale palette (accessible contrast)
-    primary = Color(0xFF111111),        // used for key accents (FAB, primary buttons)
-    secondary = Color(0xFF2B2B2B),      // secondary accents if needed
-    error = Color(0xFF222222),          // keep grayscale; dialogs text uses red tint removed
-    background = Color(0xFF0A0A0A),     // app background (near black)
-    surface = Color(0xFF1F1F1F),        // cards and surfaces
-    onPrimary = Color(0xFFFFFFFF),      // text on primary
-    onSecondary = Color(0xFFE5E5E5),    // text/icons on secondary surfaces
-    onBackground = Color(0xFFE5E5E5),   // primary text on background
-    onSurface = Color(0xFFE5E5E5),      // text on surfaces
+    // Core grayscale palette (accessible contrast baseline)
+    primary = Color(0xFF111111),
+    secondary = Color(0xFF2B2B2B),
+    error = Color(0xFF222222),
+    background = Color(0xFF0A0A0A),
+    surface = Color(0xFF1F1F1F),
+    onPrimary = Color(0xFFFFFFFF),
+    onSecondary = Color(0xFFE5E5E5),
+    onBackground = Color(0xFFE5E5E5),
+    onSurface = Color(0xFFE5E5E5),
+)
+
+// High-contrast variant: pure black/white for max contrast, thicker borders implied by components,
+// higher emphasis on focus via strong dividers and text opacities 1.0.
+private val HighContrastScheme = lightColorScheme(
+    primary = Color(0xFF000000),
+    secondary = Color(0xFF000000),
+    error = Color(0xFF000000),
+    background = Color(0xFF000000),
+    surface = Color(0xFF111111),
+    onPrimary = Color(0xFFFFFFFF),
+    onSecondary = Color(0xFFFFFFFF),
+    onBackground = Color(0xFFFFFFFF),
+    onSurface = Color(0xFFFFFFFF),
 )
 
 @Composable
-private fun MonoTheme(content: @Composable () -> Unit) {
-    MaterialTheme(
-        colorScheme = MonoColorScheme,
-        typography = MaterialTheme.typography
-    ) {
-        // Root surface to ensure background fills the window
+private fun AppTheme(highContrast: Boolean, content: @Composable () -> Unit) {
+    val scheme = if (highContrast) HighContrastScheme else MonoColorScheme
+    MaterialTheme(colorScheme = scheme, typography = MaterialTheme.typography) {
         Surface(color = MaterialTheme.colorScheme.background) {
             content()
         }
@@ -117,19 +129,27 @@ private fun MonoTheme(content: @Composable () -> Unit) {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun OceanProfessionalNotesApp() {
-    MonoTheme {
-        val repo = remember { InMemoryNotesRepository(seed = true) }
-        val screenState = remember { mutableStateOf<Screen>(Screen.List) }
-        val selectedNote = remember { mutableStateOf<Note?>(null) }
-        val snackbarHostState = remember { SnackbarHostState() }
-        val scope = rememberCoroutineScope()
+private fun OceanProfessionalNotesApp(settingsRepository: SettingsRepository) {
+    val repo = remember { InMemoryNotesRepository(seed = true) }
+    val screenState = remember { mutableStateOf<Screen>(Screen.List) }
+    val selectedNote = remember { mutableStateOf<Note?>(null) }
+    val snackbarHostState = remember { SnackbarHostState() }
+    val scope = rememberCoroutineScope()
 
-        // Scaffold hosting top bar and FAB based on screen
+    // Observe high contrast flag. Default false.
+    val highContrast by settingsRepository.highContrastEnabled().collectAsState(initial = false)
+
+    AppTheme(highContrast = highContrast) {
         Scaffold(
             topBar = {
                 TopBar(
                     screen = screenState.value,
+                    highContrast = highContrast,
+                    onToggleHighContrast = {
+                        scope.launch {
+                            settingsRepository.setHighContrastEnabled(!highContrast)
+                        }
+                    },
                     onBack = {
                         screenState.value = Screen.List
                         selectedNote.value = null
@@ -138,7 +158,7 @@ private fun OceanProfessionalNotesApp() {
             },
             floatingActionButton = {
                 AnimatedVisibility(visible = screenState.value == Screen.List) {
-                    // Flat FAB: remove elevation and shadow
+                    // Flat FAB: remove elevation and shadow; add clear contrasting icon
                     FloatingActionButton(
                         containerColor = MaterialTheme.colorScheme.primary,
                         contentColor = MaterialTheme.colorScheme.onPrimary,
@@ -164,6 +184,7 @@ private fun OceanProfessionalNotesApp() {
                 is Screen.List -> NotesListScreen(
                     modifier = Modifier.padding(padding),
                     repo = repo,
+                    highContrast = highContrast,
                     onOpen = { note ->
                         selectedNote.value = note
                         screenState.value = Screen.View
@@ -172,6 +193,7 @@ private fun OceanProfessionalNotesApp() {
                 is Screen.CreateEdit -> CreateEditScreen(
                     modifier = Modifier.padding(padding),
                     initial = screen.note,
+                    highContrast = highContrast,
                     onSave = { saved ->
                         if (screen.note == null) {
                             repo.add(saved.title, saved.body)
@@ -189,6 +211,7 @@ private fun OceanProfessionalNotesApp() {
                 is Screen.View -> ViewNoteScreen(
                     modifier = Modifier.padding(padding),
                     note = selectedNote.value,
+                    highContrast = highContrast,
                     onEdit = {
                         selectedNote.value?.let {
                             screenState.value = Screen.CreateEdit(it)
@@ -216,13 +239,20 @@ private sealed class Screen {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun TopBar(screen: Screen, onBack: () -> Unit) {
+private fun TopBar(
+    screen: Screen,
+    highContrast: Boolean,
+    onToggleHighContrast: () -> Unit,
+    onBack: () -> Unit
+) {
     val title = when (screen) {
         is Screen.List -> "My Notes"
         is Screen.View -> "View Note"
         is Screen.CreateEdit -> if (screen.note == null) "New Note" else "Edit Note"
     }
-    // Flat TopAppBar: zero tonal/elevation, keep contrast
+
+    var overflowOpen by remember { mutableStateOf(false) }
+
     TopAppBar(
         title = { Text(title, color = MaterialTheme.colorScheme.onSurface) },
         navigationIcon = {
@@ -236,6 +266,27 @@ private fun TopBar(screen: Screen, onBack: () -> Unit) {
                 }
             }
         },
+        actions = {
+            // Simple overflow with a single toggle entry: "High contrast"
+            Box {
+                IconButton(onClick = { overflowOpen = !overflowOpen }) {
+                    // Use a simple 3-dot text as a flat overflow indicator to avoid missing icons
+                    Text("⋮", color = MaterialTheme.colorScheme.onSurface)
+                }
+                DropdownMenu(expanded = overflowOpen, onDismissRequest = { overflowOpen = false }) {
+                    DropdownMenuItem(
+                        text = {
+                            val stateLabel = if (highContrast) "On" else "Off"
+                            Text("High contrast: $stateLabel")
+                        },
+                        onClick = {
+                            overflowOpen = false
+                            onToggleHighContrast()
+                        }
+                    )
+                }
+            }
+        },
         colors = TopAppBarDefaults.topAppBarColors(
             containerColor = MaterialTheme.colorScheme.surface,
             scrolledContainerColor = MaterialTheme.colorScheme.surface,
@@ -243,7 +294,7 @@ private fun TopBar(screen: Screen, onBack: () -> Unit) {
             titleContentColor = MaterialTheme.colorScheme.onSurface,
             actionIconContentColor = MaterialTheme.colorScheme.onSurface
         ),
-        scrollBehavior = null // avoids default tonal elevation on scroll
+        scrollBehavior = null
     )
 }
 
@@ -251,6 +302,7 @@ private fun TopBar(screen: Screen, onBack: () -> Unit) {
 private fun NotesListScreen(
     modifier: Modifier = Modifier,
     repo: InMemoryNotesRepository,
+    highContrast: Boolean,
     onOpen: (Note) -> Unit
 ) {
     val notes = remember { mutableStateListOf<Note>() }
@@ -289,16 +341,18 @@ private fun NotesListScreen(
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             items(notes, key = { it.id }) { note ->
-                NoteCard(note = note, onClick = { onOpen(note) })
+                NoteCard(note = note, highContrast = highContrast, onClick = { onOpen(note) })
             }
         }
     }
 }
 
 @Composable
-private fun NoteCard(note: Note, onClick: () -> Unit) {
-    // Flat card: no shadow, no elevation, add subtle border for focus/pressed visibility
-    val borderColor = Color(0xFF2B2B2B)
+private fun NoteCard(note: Note, highContrast: Boolean, onClick: () -> Unit) {
+    // Flat card: no elevation. In high-contrast: thicker border and full opacity text.
+    val borderWidth = if (highContrast) 2.dp else 1.dp
+    val borderColor = if (highContrast) Color.White else Color(0xFF2B2B2B)
+
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -308,7 +362,7 @@ private fun NoteCard(note: Note, onClick: () -> Unit) {
         ),
         shape = MaterialTheme.shapes.medium,
         elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
-        border = androidx.compose.foundation.BorderStroke(1.dp, borderColor)
+        border = androidx.compose.foundation.BorderStroke(borderWidth, borderColor)
     ) {
         Column(Modifier.padding(16.dp)) {
             Text(
@@ -321,7 +375,8 @@ private fun NoteCard(note: Note, onClick: () -> Unit) {
             Spacer(Modifier.height(6.dp))
             Text(
                 text = note.body,
-                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.80f),
+                color = if (highContrast) MaterialTheme.colorScheme.onSurface
+                else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.80f),
                 style = MaterialTheme.typography.bodyMedium,
                 maxLines = 3,
                 overflow = TextOverflow.Ellipsis
@@ -335,6 +390,7 @@ private fun NoteCard(note: Note, onClick: () -> Unit) {
 private fun CreateEditScreen(
     modifier: Modifier = Modifier,
     initial: Note?,
+    highContrast: Boolean,
     onSave: (Note) -> Unit,
     onCancel: () -> Unit
 ) {
@@ -345,7 +401,7 @@ private fun CreateEditScreen(
     Column(
         modifier = modifier
             .fillMaxSize()
-            .padding(horizontal = 16.dp, vertical = 12.dp)
+        .padding(horizontal = 16.dp, vertical = 12.dp)
     ) {
         OutlinedTextField(
             value = title,
@@ -353,16 +409,31 @@ private fun CreateEditScreen(
                 title = it
                 if (error != null) error = null
             },
-            label = { Text("Title", color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.85f)) },
+            label = {
+                Text(
+                    "Title",
+                    color = if (highContrast) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.85f)
+                )
+            },
             isError = error != null,
-            supportingText = { if (error != null) Text(error!!, color = MaterialTheme.colorScheme.onSurface) },
+            supportingText = {
+                if (error != null) Text(
+                    error!!,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+            },
             modifier = Modifier.fillMaxWidth()
         )
         Spacer(Modifier.height(12.dp))
         OutlinedTextField(
             value = body,
             onValueChange = { body = it },
-            label = { Text("Body", color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.85f)) },
+            label = {
+                Text(
+                    "Body",
+                    color = if (highContrast) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.85f)
+                )
+            },
             modifier = Modifier
                 .fillMaxWidth()
                 .fillMaxHeight(0.7f),
@@ -373,7 +444,6 @@ private fun CreateEditScreen(
             horizontalArrangement = Arrangement.spacedBy(8.dp),
             modifier = Modifier.fillMaxWidth()
         ) {
-            // Flat text buttons (TextButton already has no elevation). We ensure visibility by strong contrast.
             TextButton(onClick = onCancel) {
                 Text("Cancel", color = MaterialTheme.colorScheme.onSurface)
             }
@@ -399,6 +469,7 @@ private fun CreateEditScreen(
 private fun ViewNoteScreen(
     modifier: Modifier = Modifier,
     note: Note?,
+    highContrast: Boolean,
     onEdit: () -> Unit,
     onDelete: () -> Unit
 ) {
@@ -424,12 +495,17 @@ private fun ViewNoteScreen(
                 Icon(Edit, contentDescription = "Edit", tint = MaterialTheme.colorScheme.onSurface)
             }
             IconButton(onClick = { showConfirm = true }) {
-                Icon(Delete, contentDescription = "Delete", tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.85f))
+                Icon(
+                    Delete,
+                    contentDescription = "Delete",
+                    tint = if (highContrast) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.85f)
+                )
             }
         }
         Divider(
             Modifier.padding(vertical = 8.dp),
-            color = Color(0xFF2B2B2B)
+            color = if (highContrast) Color.White else Color(0xFF2B2B2B),
+            thickness = if (highContrast) 2.dp else 1.dp
         )
         Text(
             text = note.body.ifBlank { "No content" },
@@ -439,12 +515,15 @@ private fun ViewNoteScreen(
     }
 
     if (showConfirm) {
-        // Flat dialog: M3 AlertDialog has no explicit elevation setter, but uses theme.
-        // We ensure flat appearance by avoiding tonal elevation via color choices.
         AlertDialog(
             onDismissRequest = { showConfirm = false },
             title = { Text("Delete note?", color = MaterialTheme.colorScheme.onSurface) },
-            text = { Text("This action cannot be undone.", color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.85f)) },
+            text = {
+                Text(
+                    "This action cannot be undone.",
+                    color = if (highContrast) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.85f)
+                )
+            },
             confirmButton = {
                 TextButton(onClick = {
                     showConfirm = false
@@ -454,7 +533,6 @@ private fun ViewNoteScreen(
             dismissButton = {
                 TextButton(onClick = { showConfirm = false }) { Text("Cancel", color = MaterialTheme.colorScheme.onSurface) }
             },
-            // Use container surface to avoid tonal elevation look
             containerColor = MaterialTheme.colorScheme.surface
         )
     }
@@ -469,7 +547,10 @@ private fun LoadingState(height: Dp = 160.dp) {
             .padding(16.dp),
         contentAlignment = Alignment.Center
     ) {
-        Text("Loading...", color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.7f))
+        Text(
+            "Loading...",
+            color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.7f)
+        )
     }
 }
 
@@ -484,6 +565,9 @@ private fun EmptyState(title: String, subtitle: String) {
     ) {
         Text(title, style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.onBackground)
         Spacer(Modifier.height(8.dp))
-        Text(subtitle, color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.7f))
+        Text(
+            subtitle,
+            color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.7f)
+        )
     }
 }
