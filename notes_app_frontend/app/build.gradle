@@ -40,6 +40,12 @@ android {
         kotlinCompilerExtensionVersion = "1.5.15"
     }
 
+    // Ensure Java toolchain matches Kotlin's jvmTarget to avoid target mismatch (use Java 17)
+    compileOptions {
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
+    }
+
     kotlinOptions {
         jvmTarget = "17"
         freeCompilerArgs += [

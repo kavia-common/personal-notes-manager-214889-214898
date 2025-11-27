@@ -22,6 +22,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Divider
@@ -110,6 +111,7 @@ private fun OceanProfessionalTheme(content: @Composable () -> Unit) {
     )
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun OceanProfessionalNotesApp() {
     OceanProfessionalTheme {
@@ -200,6 +202,7 @@ private sealed class Screen {
     data class CreateEdit(val note: Note?) : Screen()
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun TopBar(screen: Screen, onBack: () -> Unit) {
     val title = when (screen) {
@@ -296,6 +299,7 @@ private fun NoteCard(note: Note, onClick: () -> Unit) {
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun CreateEditScreen(
     modifier: Modifier = Modifier,
@@ -358,6 +362,7 @@ private fun CreateEditScreen(
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun ViewNoteScreen(
     modifier: Modifier = Modifier,

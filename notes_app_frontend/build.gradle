@@ -3,7 +3,7 @@ plugins {
 }
 
 ext {
-    kotlinVersion = "1.9.24"
+    kotlinVersion = "1.9.25"
     agpVersion = "8.5.2"
     composeBom = "2024.10.01"
     composeCompilerExtension = "1.5.15"
